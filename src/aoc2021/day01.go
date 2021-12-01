@@ -25,6 +25,10 @@ func main() {
     for i := range part1_test_input {
         if (part1(part1_test_input[i]) != part1_test_output[i]) {
             success = false;
+            fmt.Printf("part1 failed with input %s: result %s != expected %s \n"
+                    ,part1_test_input[i],
+                    part1(part1_test_input[i]),
+                    part1_test_output[i]);
             break;
         }
     }
@@ -37,6 +41,10 @@ func main() {
     for i := range part2_test_input {
         if (part2(part2_test_input[i]) != part2_test_output[i]) {
             success = false;
+            fmt.Printf("part2 failed with input %s: result %s != expected %s \n",
+                    part2_test_input[i],
+                    part2(part2_test_input[i]),
+                    part2_test_output[i]);
             break;
         }
     }
@@ -81,15 +89,15 @@ func part1(input string) string {
 
 var part2_test_input = []string{
     `199
-    200
-    208
-    210
-    200
-    207
-    240
-    269
-    260
-    263`,
+200
+208
+210
+200
+207
+240
+269
+260
+263`,
 };
 var part2_test_output = []string{
     `5`,
