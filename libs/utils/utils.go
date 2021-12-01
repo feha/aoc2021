@@ -2,6 +2,8 @@ package utils;
 
 import (
   "fmt"
+  "os"
+  "errors"
   "strings"
   "strconv"
   "net/http"
@@ -9,16 +11,38 @@ import (
 );
 
 const url_format string = "https://adventofcode.com/%d/day/%d/input";
-const session string = "PASTE_HERE"; // TODO paste your session-cookie!!
+const path_session_token = "cookie_session";
 
-func Get_input(year int, day int) string {
+func get_session() (string, error) {
+    content, err := ioutil.ReadFile(path_session_token)
+    if err != nil {
+        fmt.Fprintln(os.Stderr, "ERROR (utils.get_session): Failed to read ./"+path_session_token);
+        return "", err
+    }
+
+    return string(content), nil;
+}
+
+func Get_input(year int, day int) (string, error) {
+    var session, err = get_session();
+
+    // Sanity and errors
+    if err != nil {
+        return "", err;
+    }
+    if session == "" {
+        const msg string = "ERROR (utils.Get_input): Session-token is an empty string. Make sure you edited ./cookie_session";
+        fmt.Fprintln(os.Stderr, msg);
+        return "", errors.New(msg);
+    }
+
     var url = fmt.Sprintf(url_format, year, day);
 
     // Declare http client
     var client = &http.Client{};
 
     // Declare HTTP Method and Url
-    var req, err = http.NewRequest("GET", url, nil);
+    req, err := http.NewRequest("GET", url, nil);
     if err != nil {
         fmt.Printf("error = %s \n", err);
     }   
@@ -36,7 +60,7 @@ func Get_input(year int, day int) string {
         fmt.Printf("error = %s \n", err);
     }
 
-    return string(data);
+    return string(data), nil;
 }
 
 func Trim_array(strs []string) []string {

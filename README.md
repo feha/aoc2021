@@ -1,12 +1,12 @@
 # aoc2021
 Advent of Code 2021 - Time to learn Go
+Will contain my solutions for aoc2021, so avoid reading the files in `.src/aoc2021/` unless you want spoilers.
+Also has 2020-day1-part1 in `./src/aoc2020` for demo/example purposes, as it's less relevant than the current year (personally used it to set up and test the environment, without having to break open this years advent-calendar).
 
-# SETUP
+# Setup
 
-## Important Misc.
-
-Copy your session-cookie into ./src/utils/utils.go or it wont work.
-You will find this string by:
+Copy your session-cookie into .cookie_session or it wont work.
+You can retrieve this string by:
 - Logging into aoc and opening dev-console in your browser
 - Selecting the "Application" tab
 - Expanding "Cookies" in the left sidepanel ("Cookies" is found under header "Storage")
@@ -43,7 +43,7 @@ So to summarize, 'installing' the project could be done as such:
 
 ?:/desired-project-directory> git clone githubs-project-url .
 
-# Get your session-cookie and edit the 'session' variable in  './utils/utils.go'
+# Get your session-cookie-token and write it into './cookie_session'
 
 ?:/desired-project-directory> python aoc.py new
 

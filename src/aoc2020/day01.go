@@ -14,7 +14,7 @@ import (
   */
 
 func main() {
-    var input = utils.Get_input(2020, 1);
+    var input, _ = utils.Get_input(2020, 1);
     // fmt.Printf("Input: %s \n", input);
 
     var success = true;
@@ -78,7 +78,7 @@ var part2_test_output = []string{
     ``,
 };
 func part2(input string) string {
-    var inputs = strings.Split(strings.Trim(input, "separator"), "separator");
+    // var inputs = strings.Split(strings.Trim(input, "separator"), "separator");
 
     // ...
 
