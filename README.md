@@ -17,12 +17,12 @@ You can retrieve this string by:
 
 This project comes with a handy (but simple) utility I have made called aoc-py.
 This can be used in the command-line to (more info in `python oac-py -h`):
-1. Create a new file for the day by copying/'instantiating' the day.template file, renaming, and replacing placeholder values. (`python aoc.py [--year 2021] new [--day 1]`)
+1. Create a new file for the day by copying/'instantiating' the day.template file, renaming, and replacing placeholder values. (`python aoc.py [--year 2021] new [1-25]`)
     * 'year' - by default the current year. Mainly changes the folder used, and the `%{year}` placeholder when instantiating the template file.
-    * 'day' - by default finding the highest existing day/file (in ./src/aocYYYY/), incremented by 1. If no file exists, the default is '1'.
+    * [1-25] ('day') - by default finding the highest existing day/file (in ./src/aocYYYY/), incremented by 1. If no file exists its considered `0`, giving `0+1`. It overwrites the entire file if an existing day/file is specified. So beware losing data!
     * Normally used as `python aoc.py new`
     * The created file will be renamed using the format `./src/aoc{year}/day{day:02d}.go`
-2. Test (run) a day (file) (`python aoc.py [--year 2021] test [--day 1]`)
+2. Test (run) a day (file) (`python aoc.py [--year 2021] test [1-25]`)
     * 'year' - by default the current year. Changes the folder used.
     * 'day' - by default uses the highest existing day/file (in ./src/aocYYYY/).
     * Normally used as `python aoc.py test`

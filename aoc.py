@@ -25,6 +25,7 @@ day_format = "{day:02d}"
 filename_format = "day{}.{}".format(day_format, file_extension)
 filename_pattern = r"day(\d+)." + re.escape(file_extension) # The pattern of the created files. Ie. "day(\d+).go" or "day(\d+).scala"
 
+possible_days = list(map(lambda n: str(n),range(1,25+1)))
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -40,7 +41,7 @@ def parse_args():
     parser_test = subparsers.add_parser("test", formatter_class=argparse.RawTextHelpFormatter,
             help="Test solution(s), runs '{}'".format(test_day_command.format(year_format, day_format)))
     parser_test.add_argument('day', nargs="?",
-            choices=["","all"]+list(map(lambda n: str(n),range(1,25+1))),
+            choices=["","all"]+possible_days,
             default="", help=
 """Which day(s) to test (Default: ""):
     "" - Only latest day.
@@ -51,6 +52,12 @@ def parse_args():
     # parser for the "new" command
     parser_new = subparsers.add_parser('new', aliases=["start"], help='Create a new file.')
     parser_new.add_argument('-t', '--template', nargs=1, default=default_template, help="The path to the template (Default: '{}')".format(default_template))
+    parser_new.add_argument('day', nargs="?",
+            choices=[""]+list(map(lambda n: str(n),range(1,25+1))),
+            default="", help=
+"""Which day to create (Default: ""):
+    "" - Current highest + 1
+    \\d - Test only the specified day.""")
     parser_new.set_defaults(func=new)
     
     return parser.parse_args()
@@ -68,8 +75,17 @@ def new(args):
     print("Creating new file...")
     package = year_format.format(year=args.year)
     path = os.path.join(args.dir, package)
-    # Find the relevant day
-    day = find_day(path) + 1
+    if not args.day:
+        # Find the relevant day
+        day = find_day(path) + 1
+    elif args.day in possible_days:
+        # Use specified day
+        day = int(args.day)
+    else:
+        # undefined
+        print("Undefined behaviour! args.day=" + args.day)
+        day = int(args.day)
+    
     day_padded = day_format.format(day=day)
     
     # Get Timestamp
@@ -108,7 +124,7 @@ def test(args):
         testonly_format = test_day_command.format(year_format, day_format)
         cmd = testonly_format.format(year=args.year, day=int(day_padded))
         # cmd = test_day_command.format(day_format).format(day=int(day_padded))
-        print(cmd)
+        print(cmd+"\n")
         # os.system("{}".format(cmd)) # works
         subprocess.run(cmd, shell=True) # works
         # subprocess.run(cmd, cwd=working_directory.format(year_format).format(year=args.year), shell=True) # works2
