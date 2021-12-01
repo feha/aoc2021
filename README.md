@@ -35,7 +35,7 @@ There are various useful placeholder variables that can be used:
 * `%{p1Done}` & `%{p2Done}` - UNIMPLEMENTED. Meant to be able to be replaced retroactively when a part is completed. Possibly with some delta's too, to effortlessly know how long you took. For now, you would have to edit those values manually.
 * `%{year}` & `%{day}` - Self-explanatory. Replaced with the selected year (`YYYY`) and day (`DD`/`day:02d`) respectively.
 
-## Installation
+# Installation
 
 So to summarize, 'installing' the project could be done as such:
 ```console
@@ -49,7 +49,7 @@ So to summarize, 'installing' the project could be done as such:
 
 # Edit the created file to complete part1
 
-?:/desired-project-directory> python aoc.py test
+?:/desired-project-directory> python aoc.py --year 2020 test
 argv: aoc.py
 argv: --year
 argv: 2020
@@ -65,7 +65,7 @@ part2:
 
 # Edit the created file to complete part2
 
-?:/desired-project-directory> python aoc.py test
+?:/desired-project-directory> python aoc.py -y 2020 test
 argv: aoc.py
 argv: --year
 argv: 2020
