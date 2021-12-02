@@ -32,8 +32,9 @@ def parse_args():
     #
     # ... configure command line arguments ...
     #
-    subparsers = parser.add_subparsers(help='Which command to run. (Default: test)\nUse `python aoc.py new` to create todays file.')
-    
+    subparsers = parser.add_subparsers(help='Which command to run. (Default: test)\nUse `python aoc.py new` to create todays file.', dest="command")
+    subparsers.required = True
+
     parser.add_argument('-d', '--dir', nargs=1, default=default_path, help="The directory of the src (Default: {}".format(default_path))
     parser.add_argument('-y', '--year', nargs="?", default=current_year, help="The year (Default: current ({}))".format(current_year))
     

@@ -20,7 +20,7 @@ func get_session() (string, error) {
         return "", err
     }
 
-    return string(content), nil;
+    return strings.Trim(string(content), " \n"), nil;
 }
 
 func Get_input(year int, day int) (string, error) {

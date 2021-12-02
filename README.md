@@ -16,7 +16,7 @@ You can retrieve this string by:
 # aoc.py and day-template
 
 This project comes with a handy (but simple) utility I have made called aoc-py.
-This can be used in the command-line to (more info in `python oac-py -h`):
+This can be used in the command-line to (more info in `python aoc.py -h`):
 1. Create a new file for the day by copying/'instantiating' the day.template file, renaming, and replacing placeholder values. (`python aoc.py [--year 2021] new [1-25]`)
     * 'year' - by default the current year. Mainly changes the folder used, and the `%{year}` placeholder when instantiating the template file.
     * [1-25] ('day') - by default finding the highest existing day/file (in ./src/aocYYYY/), incremented by 1. If no file exists its considered `0`, giving `0+1`. It overwrites the entire file if an existing day/file is specified. So beware losing data!
