@@ -1,17 +1,21 @@
 # aoc2021
 Advent of Code 2021 - Time to learn Go
+
 Will contain my solutions for aoc2021, so avoid reading the files in `.src/aoc2021/` unless you want spoilers.
-Also has 2020-day1-part1 in `./src/aoc2020` for demo/example purposes, as it's less relevant than the current year (personally used it to set up and test the environment, without having to break open this years advent-calendar).
+
+Also has 2020-day1-part1 in `./src/aoc2020` for demo/example purposes, as it's less relevant than the current year (personally used it to set up and test the environment, without having to break open this years advent-calendar). Allows you to test the environment without opening the actual/current year, to make sure it works. Also serves to show how the project can contain/be used for multiple years at once.
 
 # Setup
 
-Copy your session-cookie into .cookie_session or it wont work.
-You can retrieve this string by:
+Copy your session-token into a file `./cookie_session` or it wont work (need to create the file too).
+If you are using Chrome, you can retrieve this string by:
 - Logging into aoc and opening dev-console in your browser
 - Selecting the "Application" tab
 - Expanding "Cookies" in the left sidepanel ("Cookies" is found under header "Storage")
 - Selecting the aoc url
 - Then finally copy the Value from the "session"-row (will be a long lowercase hex-string)
+
+Delete the files in `.src/aoc2021/` to avoid spoilers. Or whenever you start a new day, you could use the command `python aoc.py day [1-25]` to overwrite the specified day (beware deleting your own data!).
 
 # aoc.py and day-template
 
@@ -43,42 +47,63 @@ So to summarize, 'installing' the project could be done as such:
 
 ?:/desired-project-directory> git clone githubs-project-url .
 
-# Get your session-cookie-token and write it into './cookie_session'
+# Get your session-cookie-token as described in SETUP
 
-?:/desired-project-directory> python aoc.py new
+?:/desired-project-directory> [YOUR_TOKEN] > cookie_session
 
-# Edit the created file to complete part1
+# Delete the existing solutions in './src/aoc2021/' to avoid spoilers
 
+?:/desired-project-directory>
+```
+To verify that everything works, you could run the included demo-solution for 2020 (note that it specifies year by using `--year` or `-y`):
+```console
 ?:/desired-project-directory> python aoc.py --year 2020 test
 argv: aoc.py
 argv: --year
 argv: 2020
 argv: test
-args  Namespace(day='', dir='./src/', func=<function test at 0x015F8F18>, year='2020')
+args  Namespace(command='test', day='', dir='./src/', func=<function test at 0x015F8F18>, year='2020')
 Testing aoc: year=2020 - day=latest ...
 go run ./src/aoc2020/day01.go
 part1 minitest success: true!
-part1: 63616
+part1: #####
+
+part2 minitest success: true!
+part2:
+
+?:/desired-project-directory> 
+```
+To use (create a day/file, and test it), the workflow is:
+```console
+?:/desired-project-directory> python aoc.py new
+
+# Edit the created file to complete part1
+
+?:/desired-project-directory> python aoc.py test
+argv: aoc.py
+argv: test
+args  Namespace(command='test', day='', dir='./src/', func=<function test at 0x015F8F18>, year='2021')
+Testing aoc: year=2021 - day=latest ...
+go run ./src/aoc2021/day01.go
+part1 minitest success: true!
+part1: #####
 
 part2 minitest success: true!
 part2:
 
 # Edit the created file to complete part2
 
-?:/desired-project-directory> python aoc.py -y 2020 test
+?:/desired-project-directory> python aoc.py test
 argv: aoc.py
-argv: --year
-argv: 2020
 argv: test
-args  Namespace(day='', dir='./src/', func=<function test at 0x015F8F18>, year='2020')
-Testing aoc: year=2020 - day=latest ...
-go run ./src/aoc2020/day01.go
+args  Namespace(command='test', day='', dir='./src/', func=<function test at 0x015F8F18>, year='2021')
+Testing aoc: year=2021 - day=latest ...
+go run ./src/aoc2021/day01.go
 part1 minitest success: true!
-part1: 63616
+part1: #####
 
 part2 minitest success: true!
-part2: 67877784
+part2: #####
 
 ?:/desired-project-directory> 
 ```
-Note that I specified year 2020 in the block above. This is because I include a demo for the first day of the prior year in the project. Which allows you to test the environment without opening the actual/current year. Also serves to show how the project can contain/be used for multiple years at once.
