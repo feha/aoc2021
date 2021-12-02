@@ -11,12 +11,12 @@ import (
 );
 
 const url_format string = "https://adventofcode.com/%d/day/%d/input";
-const path_session_token = "cookie_session";
+const path_session_token = "./cookie_session";
 
 func get_session() (string, error) {
     content, err := ioutil.ReadFile(path_session_token)
     if err != nil {
-        fmt.Fprintln(os.Stderr, "ERROR (utils.get_session): Failed to read ./"+path_session_token);
+        fmt.Fprintf(os.Stderr, "ERROR (utils.get_session) - Failed to read `%s` with error: `%s`\n",path_session_token, err);
         return "", err
     }
 
@@ -31,7 +31,7 @@ func Get_input(year int, day int) (string, error) {
         return "", err;
     }
     if session == "" {
-        const msg string = "ERROR (utils.Get_input): Session-token is an empty string. Make sure you edited ./cookie_session";
+        const msg string = "ERROR (utils.Get_input): Session-token is an empty string. Make sure you edited `./cookie_session`";
         fmt.Fprintln(os.Stderr, msg);
         return "", errors.New(msg);
     }
