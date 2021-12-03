@@ -104,15 +104,11 @@ var part2_test_output = []string{
 func part2(input string) string {
     inputs := utils.Trim_array(strings.Split(strings.Trim(input, separator), separator));
 
-    o2, err := strconv.ParseInt(
-            filter(inputs, func(lhs int, rhs int)bool {return lhs > rhs}),
-            2, 64);
+    o2, err := strconv.ParseInt( filter(inputs, true), 2, 64);
     if err != nil {
         fmt.Printf("error1 = %s \n", err);
     }
-    co2, err := strconv.ParseInt(
-            filter(inputs, func(lhs int, rhs int)bool {return lhs <= rhs}),
-            2, 64);
+    co2, err := strconv.ParseInt( filter(inputs, false), 2, 64);
     if err != nil {
         fmt.Printf("error2 = %s \n", err);
     }
@@ -124,16 +120,16 @@ func gamma_epsilon(inputs []string) (int, int) {
     zeroes, ones := hist(inputs);
 
     gamma, epsilon := 0, 0;
-    for i := 0; i < len(inputs[0]); i++  {
+    for i := 0; i < len(zeroes); i++  {
         gamma = gamma << 1;
         epsilon = epsilon << 1;
         zeroes := zeroes[i];
         ones := ones[i];
-        if zeroes >= ones {
+        if zeroes > ones {
             // gamma += 0;
-            epsilon += 1;
+            epsilon++; // least common bit is 1
         } else if zeroes <= ones {
-            gamma += 1;
+            gamma++; // most common bit is 1
             // epsilon += 0;
         } else {
             fmt.Fprintf(os.Stderr, "ERROR - Undefined behaviour for this state!");
@@ -143,28 +139,24 @@ func gamma_epsilon(inputs []string) (int, int) {
     return gamma, epsilon;
 }
 
-func filter(inputs []string, zero_cond func(int,int)bool) string {
+func filter(inputs []string, use_mcb bool) string {
+    size := len(inputs[0]);
     pos := 0;
     candidates := make([]string, len(inputs));
     copy(candidates, inputs);
-    for len(candidates) > 1 || pos > 99 {
-        h0, h1 := hist(candidates);
+    for len(candidates) > 1 || pos > size {
         pass := make([]string, 0);
-
-        zeroes := h0[pos];
-        ones := h1[pos];
+        gamma, epsilon := gamma_epsilon(candidates); // bit at pos
+        if !use_mcb {
+            gamma = epsilon;
+        }
+        mask := (1 << (size-pos-1));
+        bit := strconv.Itoa((gamma & mask) >> (size-pos-1)); // bit at pos
         for _, candidate := range candidates  {
             switch string(candidate[pos]) {
-            case "0":
-                if zero_cond(zeroes, ones) {
-                    pass = append(pass, candidate);
-                }
-            case "1":
-                if !zero_cond(zeroes, ones) {
-                    pass = append(pass, candidate);
-                }
+            case bit:
+                pass = append(pass, candidate);
             default:
-                fmt.Fprintf(os.Stderr, "ERROR - Unreachable reached!");
             }
         }
         candidates = pass;
@@ -173,6 +165,36 @@ func filter(inputs []string, zero_cond func(int,int)bool) string {
     }
     return candidates[0];
 }
+// func filter(inputs []string, zero_cond func(int,int)bool) string {
+//     pos := 0;
+//     candidates := make([]string, len(inputs));
+//     copy(candidates, inputs);
+//     for len(candidates) > 1 || pos > 99 {
+//         h0, h1 := hist(candidates);
+//         pass := make([]string, 0);
+
+//         zeroes := h0[pos];
+//         ones := h1[pos];
+//         for _, candidate := range candidates  {
+//             switch string(candidate[pos]) {
+//             case "0":
+//                 if zero_cond(zeroes, ones) {
+//                     pass = append(pass, candidate);
+//                 }
+//             case "1":
+//                 if !zero_cond(zeroes, ones) {
+//                     pass = append(pass, candidate);
+//                 }
+//             default:
+//                 fmt.Fprintf(os.Stderr, "ERROR - Unreachable reached!");
+//             }
+//         }
+//         candidates = pass;
+
+//         pos++;
+//     }
+//     return candidates[0];
+// }
 
 func hist(strs []string) ([]int, []int) {
     size := len(strs[0]);
