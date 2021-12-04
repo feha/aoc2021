@@ -146,7 +146,7 @@ func filter(inputs []string, use_mcb bool) string {
     copy(candidates, inputs);
     for len(candidates) > 1 || pos > size {
         pass := make([]string, 0);
-        gamma, epsilon := gamma_epsilon(candidates); // bit at pos
+        gamma, epsilon := gamma_epsilon(candidates);
         if !use_mcb {
             gamma = epsilon;
         }
