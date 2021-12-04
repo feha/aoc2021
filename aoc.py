@@ -137,8 +137,8 @@ def test(args):
 
 
 class SafeDict(dict):
-     def __missing__(self, key):
-         return '{' + key + '}'
+    def __missing__(self, key):
+        return '{' + key + '}'
 
 def find_day(path):
     last_day = 0

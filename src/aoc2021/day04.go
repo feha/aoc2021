@@ -166,7 +166,7 @@ func part2(input string) string {
     }
     boards_str := inputs[1:];
 
-    re := regexp.MustCompile("\\s+")
+    re := regexp.MustCompile("\\s+");
     boards := make([][][]int, 0);
     boards_marks := make([][][]bool, 0);
     for i, str := range boards_str {
@@ -282,13 +282,30 @@ func rowWin(board_marks [][]bool) bool {
     return win;
 }
 func colWin(board_marks [][]bool) bool {
-    win := false;
-    for x, _ := range board_marks[0] {
-        win_col := true;
-        for y, _ := range board_marks {
-            win_col = win_col && board_marks[y][x];
+    cols := make([]bool, 0);
+    for _, row := range board_marks {
+        for col, cell := range row {
+            if col >= len(cols) {
+                cols = append(cols, true);
+            }
+            cols[col] = cols[col] && cell;
         }
-        win = win || win_col;
     }
-    return win;
+    
+    for _, b := range cols {
+        if b {
+            return true;
+        }
+    }
+    return false;
+
+    // win := false;
+    // for x, _ := range board_marks[0] {
+    //     win_col := true;
+    //     for y, _ := range board_marks {
+    //         win_col = win_col && board_marks[y][x];
+    //     }
+    //     win = win || win_col;
+    // }
+    // return win;
 }
