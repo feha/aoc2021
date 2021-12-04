@@ -70,6 +70,34 @@ func Trim_array(strs []string) []string {
     return strs;
 }
 
+func Itoa_array(ints []int) []string {
+    var strs = make([]string, len(ints));
+    for i, d := range ints {
+        var str = strconv.Itoa(d);
+        strs[i] = str;
+    }
+    return strs;
+}
+func FormatBool_array(bools []bool) []string {
+    var strs = make([]string, len(bools));
+    for i, b := range bools {
+        var str = strconv.FormatBool(b);
+        strs[i] = str;
+    }
+    return strs;
+}
+func BoolToStr_array(bools []bool) []string {
+    var strs = make([]string, len(bools));
+    for i, b := range bools {
+        var str = "[ ]";
+        if b {
+            str = "[X]";
+        }
+        strs[i] = str;
+    }
+    return strs;
+}
+
 func StrToInt_array(strs []string) ([]int, error) {
     var ints = make([]int, len(strs));
     for i, str := range strs {

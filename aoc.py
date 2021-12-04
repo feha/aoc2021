@@ -110,6 +110,8 @@ def new(args):
 
 def test(args):
     print("Testing aoc: year={} - day={} ...".format(args.year,args.day or "latest"))
+    now = datetime.datetime.now().strftime("%H:%M:%S")
+    print("clock = {}".format(now))
     if "all" in args.day:
         cmd = test_all_command
         print(cmd)
