@@ -4,7 +4,6 @@ import (
     "aoc/libs/utils"
     "fmt"
     "strings"
-    "regexp"
     "strconv"
 );
 
@@ -76,106 +75,34 @@ var part1_test_output = []string{
 };
 func part1(input string) string {
     lines := utils.Trim_array(strings.Split(strings.Trim(input, separator), separator));
-    // nums, _ := utils.StrToInt_array(inputs);
 
-    segments := make([]Segment, 0);
+    segments := parse(lines);
 
-    // re := regexp.MustCompile("(\\d+,\\d+) -> (\\d+,\\d+)");
-    re := regexp.MustCompile("() -> ()");
-    for _, line := range lines {
-        segment_str := re.Split(line, -1);
-        start, err := utils.StrToInt_array(strings.Split(segment_str[0], ","));
-        if err != nil {
-            fmt.Printf("error1 = %s \n", err);
-        }
-        end, err := utils.StrToInt_array(strings.Split(segment_str[1], ","));
-        if err != nil {
-            fmt.Printf("error2 = %s \n", err);
-        }
-        segments = append(segments, Segment{Coord{x: start[0], y: start[1]}, Coord{x: end[0], y: end[1]}});
-    }
-
-    // needs dimensions for the field
-    max_x, max_y := 0, 0;
-    for _, segment := range segments {
-        start := segment.start;
-        end := segment.end;
-        if start.x > max_x {
-            max_x = start.x;
-        }
-        if start.y > max_y {
-            max_y = start.y;
-        }
-        if end.x > max_x {
-            max_x = end.x;
-        }
-        if end.y > max_y {
-            max_y = end.y;
-        }
-    }
+    width, height := get_dimensions(segments);
 
     // prepare field
-    field := make([][]int, max_y+1);
-    for y:=0; y < len(field); y++{
-        field[y] = make([]int, max_x+1);
-        // for x:=0; x < len(field[y]); x++ {
-
-        // }
+    field := make([][]int, height);
+    for y := range field {
+        field[y] = make([]int, width);
     }
 
     // ignore diagonals
-    horizontal := make([]Segment, 0);
-    vertical := make([]Segment, 0);
+    pass := make([]Segment, 0);
     for _, segment := range segments {
         start := segment.start;
         end := segment.end;
-        if (start.x == end.x) {
-            horizontal = append(horizontal, segment);
+        if start.x != end.x && start.y != end.y {
+            continue;
         }
-        if (start.y == end.y) {
-            vertical = append(vertical, segment);
-        }
+        pass = append(pass, segment);
     }
-    // segments = pass;
+    segments = pass;
 
-    // increment field
-    for _, segment := range horizontal {
-        start := segment.start;
-        end := segment.end;
-        if (start.y < end.y) {
-            for y:=start.y; y <= end.y; y++ {
-                field[y][start.x]++;
-            }
-        } else {
-            for y:=end.y; y <= start.y; y++ {
-                field[y][start.x]++;
-            }
-        }
-    }
-    for _, segment := range vertical {
-        start := segment.start;
-        end := segment.end;
-        if (start.x < end.x) {
-            for x:=start.x; x <= end.x; x++ {
-                field[start.y][x]++;
-            }
-        } else {
-            for x:=end.x; x <= start.x; x++ {
-                field[start.y][x]++;
-            }
-        }
+    for _, segment := range segments {
+        add_segment(field, segment);
     }
 
-    // print_pretty_int(field);
-
-    count := 0;
-    for y:=0; y < len(field); y++ {
-        for x:=0; x < len(field[y]); x++ {
-            if field[y][x] > 1 {
-                count++;
-            }
-        }
-    }
+    count := Count(field, 1);
 
     return strconv.Itoa(count);
 }
@@ -197,155 +124,97 @@ var part2_test_output = []string{
 };
 func part2(input string) string {
     lines := utils.Trim_array(strings.Split(strings.Trim(input, separator), separator));
-    // nums, _ := utils.StrToInt_array(inputs);
 
-    segments := make([]Segment, 0);
+    segments := parse(lines);
 
-    // re := regexp.MustCompile("(\\d+,\\d+) -> (\\d+,\\d+)");
-    re := regexp.MustCompile("() -> ()");
-    for _, line := range lines {
-        segment_str := re.Split(line, -1);
-        start, err := utils.StrToInt_array(strings.Split(segment_str[0], ","));
-        if err != nil {
-            fmt.Printf("error1 = %s \n", err);
-        }
-        end, err := utils.StrToInt_array(strings.Split(segment_str[1], ","));
-        if err != nil {
-            fmt.Printf("error2 = %s \n", err);
-        }
-        segments = append(segments, Segment{Coord{x: start[0], y: start[1]}, Coord{x: end[0], y: end[1]}});
-    }
-
-    // needs dimensions for the field
-    max_x, max_y := 0, 0;
-    for _, segment := range segments {
-        start := segment.start;
-        end := segment.end;
-        if start.x > max_x {
-            max_x = start.x;
-        }
-        if start.y > max_y {
-            max_y = start.y;
-        }
-        if end.x > max_x {
-            max_x = end.x;
-        }
-        if end.y > max_y {
-            max_y = end.y;
-        }
-    }
+    width, height := get_dimensions(segments);
 
     // prepare field
-    field := make([][]int, max_y+1);
-    for y:=0; y < len(field); y++{
-        field[y] = make([]int, max_x+1);
-        // for x:=0; x < len(field[y]); x++ {
-
-        // }
+    field := make([][]int, height);
+    for y := range field {
+        field[y] = make([]int, width);
     }
 
-    // ignore diagonals
-    // horizontal := make([]Segment, 0);
-    // vertical := make([]Segment, 0);
-    // diagonal := make([]Segment, 0);
-    // for _, segment := range segments {
-    //     start := segment.start;
-    //     end := segment.end;
-    //     if (start.x == end.x) {
-    //         horizontal = append(horizontal, segment);
-    //     } else if (start.y == end.y) {
-    //         vertical = append(vertical, segment);
-    //     } else {
-    //         diagonal = append(diagonal, segment);
-    //     }
-    // }
-
-    // increment field
-    // for _, segment := range horizontal {
-    //     start := segment.start;
-    //     end := segment.end;
-    //     if (start.y < end.y) {
-    //         for y:=start.y; y <= end.y; y++ {
-    //             field[y][start.x]++;
-    //         }
-    //     } else {
-    //         for y:=end.y; y <= start.y; y++ {
-    //             field[y][start.x]++;
-    //         }
-    //     }
-    // }
-    // for _, segment := range vertical {
-    //     start := segment.start;
-    //     end := segment.end;
-    //     if (start.x < end.x) {
-    //         for x:=start.x; x <= end.x; x++ {
-    //             field[start.y][x]++;
-    //         }
-    //     } else {
-    //         for x:=end.x; x <= start.x; x++ {
-    //             field[start.y][x]++;
-    //         }
-    //     }
-    // }
-    // for _, segment := range diagonal {
-    //     start := segment.start;
-    //     end := segment.end;
-    //     steps := Abs(end.x - start.x);
-    //     dir_x := Sign(end.x - start.x);
-    //     dir_y := Sign(end.y - start.y);
-    //     x:=start.x;
-    //     y:=start.y;
-    //     for i:=0; x < steps; i++ {
-    //         field[y][x]++;
-    //         x+=dir_x;
-    //         y+=dir_y;
-    //     }
-    // }
     for _, segment := range segments {
-        start := segment.start;
-        end := segment.end;
-        steps := Abs(end.x - start.x);
-        if (start.y != end.y) {
-            steps = Abs(end.y - start.y);
-        }
-        dir_x := Sign(end.x - start.x);
-        dir_y := Sign(end.y - start.y);
-        x:=start.x;
-        y:=start.y;
-        for i:=0; i <= steps; i++ {
-            field[y][x]++;
-            x+=dir_x;
-            y+=dir_y;
-        }
+        add_segment(field, segment);
     }
 
-    // print_pretty_int(field);
-
-    count := 0;
-    for y:=0; y < len(field); y++ {
-        for x:=0; x < len(field[y]); x++ {
-            if field[y][x] > 1 {
-                count++;
-            }
-        }
-    }
+    count := Count(field, 1);
 
     return strconv.Itoa(count);
 }
 
-func Sign(x int) int {
-    if x == 0 {
-        return 0;
+func parse(lines []string) []Segment {
+    segments := make([]Segment, 0);
+    for _, line := range lines {
+        coords := strings.Split(line, " -> ");
+        start, err := utils.StrToInt_array(strings.Split(coords[0], ","));
+        if err != nil {
+            fmt.Printf("error1 = %s \n", err);
+        }
+        end, err := utils.StrToInt_array(strings.Split(coords[1], ","));
+        if err != nil {
+            fmt.Printf("error2 = %s \n", err);
+        }
+        segments = append(segments, Segment{
+            Coord{x: start[0], y: start[1]},
+            Coord{x: end[0], y: end[1]},
+        });
     }
-    return x / Abs(x);
+    return segments;
 }
 
-func Abs(x int) int {
-	if x < 0 {
-		return -x
-	}
-	return x
+func get_dimensions(segments []Segment) (int, int) {
+    width, height := 0, 0;
+    for _, segment := range segments {
+        start := segment.start;
+        end := segment.end;
+        if start.x > width {
+            width = start.x;
+        }
+        if start.y > height {
+            height = start.y;
+        }
+        if end.x > width {
+            width = end.x;
+        }
+        if end.y > height {
+            height = end.y;
+        }
+    }
+    return width+1, height+1;
 }
+
+func add_segment(field [][]int, segment Segment) {
+    start := segment.start;
+    end := segment.end;
+    steps := utils.Abs(end.x - start.x);
+    if start.y != end.y {
+        steps = utils.Abs(end.y - start.y);
+    }
+    dir_x := utils.Sign(end.x - start.x);
+    dir_y := utils.Sign(end.y - start.y);
+    x:=start.x;
+    y:=start.y;
+    for i:=0; i <= steps; i++ {
+        field[y][x]++;
+        x+=dir_x;
+        y+=dir_y;
+    }
+}
+
+func Count(field [][]int, threshold int) int {
+    count := 0;
+    for y:=0; y < len(field); y++ {
+        for x:=0; x < len(field[y]); x++ {
+            if field[y][x] > threshold {
+                count++;
+            }
+        }
+    }
+    return count;
+}
+
 
 func print_pretty_int(arr [][]int) string {
     str := "";

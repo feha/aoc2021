@@ -63,6 +63,20 @@ func Get_input(year int, day int) (string, error) {
     return string(data), nil;
 }
 
+func Sign(x int) int {
+    if x == 0 {
+        return 0;
+    }
+    return x / Abs(x);
+}
+
+func Abs(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
 func Trim_array(strs []string) []string {
     for i, str := range strs {
         strs[i] = strings.Trim(str, " ");
