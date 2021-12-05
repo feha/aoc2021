@@ -268,44 +268,49 @@ func markValue(val int, board [][]int, board_marks [][]bool) (bool, [][]int, [][
 }
 
 func boardWin(board_marks [][]bool) bool {
-    return rowWin(board_marks) || colWin(board_marks);
-}
-func rowWin(board_marks [][]bool) bool {
-    win := false;
-    for _, row := range board_marks {
+    // Considering boards are always N*N-matrices, this works too
+    for y := range board_marks {
         win_row := true;
-        for _, cell := range row {
-            win_row = win_row && cell;
+        win_col := true;
+        for x := range board_marks[y] {
+            win_row = win_row && board_marks[y][x];
+            win_col = win_col && board_marks[x][y]; // equivalent to transposing
         }
-        win = win || win_row;
-    }
-    return win;
-}
-func colWin(board_marks [][]bool) bool {
-    cols := make([]bool, 0);
-    for _, row := range board_marks {
-        for col, cell := range row {
-            if col >= len(cols) {
-                cols = append(cols, true);
-            }
-            cols[col] = cols[col] && cell;
-        }
-    }
-    
-    for _, b := range cols {
-        if b {
+        if win_row || win_col {
             return true;
         }
     }
     return false;
-
-    // win := false;
-    // for x, _ := range board_marks[0] {
-    //     win_col := true;
-    //     for y, _ := range board_marks {
-    //         win_col = win_col && board_marks[y][x];
-    //     }
-    //     win = win || win_col;
-    // }
-    // return win;
 }
+// func boardWin(board_marks [][]bool) bool {
+//     return rowWin(board_marks) || colWin(board_marks);
+// }
+// func rowWin(board_marks [][]bool) bool {
+//     win := false;
+//     for _, row := range board_marks {
+//         win_row := true;
+//         for _, cell := range row {
+//             win_row = win_row && cell;
+//         }
+//         win = win || win_row;
+//     }
+//     return win;
+// }
+// func colWin(board_marks [][]bool) bool {
+//     cols := make([]bool, 0);
+//     for _, row := range board_marks {
+//         for col, cell := range row {
+//             if col >= len(cols) {
+//                 cols = append(cols, true);
+//             }
+//             cols[col] = cols[col] && cell;
+//         }
+//     }
+    
+//     for _, b := range cols {
+//         if b {
+//             return true;
+//         }
+//     }
+//     return false;
+// }
