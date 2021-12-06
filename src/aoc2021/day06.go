@@ -71,9 +71,9 @@ func part1(input string) string {
         fmt.Printf("error = %s \n", err);
     }
 
-    result := sum(iterate_days2(fishes_to_school(nums), 80, 7, 2));
+    result := sum(iterate_days2(fishes_to_schools(nums), 80, 7, 2));
     // result := len(iterate_days(nums, 80, 7, 2));
-    
+
     return strconv.Itoa(result);
 }
 
@@ -109,44 +109,44 @@ func part2(input string) string {
         fmt.Printf("error = %s \n", err);
     }
 
-    result := sum(iterate_days2(fishes_to_school(nums), 256, 7, 2));
+    result := sum(iterate_days2(fishes_to_schools(nums), 256, 7, 2));
 
     return strconv.Itoa(result);
 }
 
-func sum(school map[int]int) int {
+func sum(schools map[int]int) int {
     sum := 0;
-    for _, n := range school {
+    for _, n := range schools {
         sum += n;
     }
     return sum;
 }
 
-func fishes_to_school(fishes []int) map[int]int {
-    // school := map[int]int{};
-    school := make(map[int]int);
+func fishes_to_schools(fishes []int) map[int]int {
+    // schools := map[int]int{};
+    schools := make(map[int]int);
     for _, t := range fishes {
-        school[t]++;
+        schools[t]++;
     }
-    return school;
+    return schools;
 }
 
-func iterate_days2(school map[int]int, days int, spawn_time int, gestation_period int) map[int]int {
+func iterate_days2(schools map[int]int, days int, spawn_time int, gestation_period int) map[int]int {
     for i:=0; i < days; i++ {
-        school = iterate_school(school, spawn_time, gestation_period);
+        schools = iterate_schools(schools, spawn_time, gestation_period);
     }
-    return school;
+    return schools;
 }
 
-func iterate_school(school map[int]int, spawn_time int, gestation_period int) map[int]int {
-    new_school := make(map[int]int, 0);
-    for t, n := range school {
+func iterate_schools(schools map[int]int, spawn_time int, gestation_period int) map[int]int {
+    new_schools := make(map[int]int, 0);
+    for t, n := range schools {
         if t == 0 {
-            new_school[spawn_time - 1] = new_school[spawn_time - 1] + n;
-            new_school[spawn_time + gestation_period - 1] = n;
+            new_schools[spawn_time - 1] = new_schools[spawn_time - 1] + n;
+            new_schools[spawn_time + gestation_period - 1] = n;
         } else {
-            new_school[t-1] = new_school[t-1] + n;
+            new_schools[t-1] = new_schools[t-1] + n;
         }
     }
-    return new_school;
+    return new_schools;
 }
