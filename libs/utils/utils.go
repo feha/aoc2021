@@ -60,7 +60,7 @@ func Get_input(year int, day int) (string, error) {
         fmt.Printf("error = %s \n", err);
     }
 
-    return string(data), nil;
+    return strings.Trim(string(data), " \n"), nil;
 }
 
 func Sign(x int) int {
