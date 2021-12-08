@@ -275,7 +275,7 @@ func find_digits_and_connections(unordered_digits []string) (map[int]string, map
     // digits[8] = digits[8];
     digits[9] = set_difference(digits[9], connections["e"]);
 
-    fmt.Println("- known=", known, "- unknown=", unknown, "- connections=", connections, "- digits=", digits, "---");
+    // fmt.Println("- known=", known, "- unknown=", unknown, "- connections=", connections, "- digits=", digits, "---");
 
     return digits, connections;
 }
