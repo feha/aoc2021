@@ -72,9 +72,9 @@ func Sign(x int) int {
 
 func Abs(x int) int {
 	if x < 0 {
-		return -x
+		return -x;
 	}
-	return x
+	return x;
 }
 
 func Trim_array(strs []string) []string {
