@@ -79,17 +79,17 @@ func part1(input string) string {
     packet, _ := parse_packet(bit_arr, 0);
 
     result := 0;
-    candidates := []Packet{packet};
+    candidates := []IPacket{packet};
     for len(candidates)>0 {
         cur := candidates[len(candidates)-1];
-        clone := []Packet{};
+        clone := []IPacket{};
         clone = append(clone, candidates[:len(candidates)-1]...);
         candidates = clone;
 
         // add subpackets
-        candidates = append(candidates, cur.args...);
+        candidates = append(candidates, cur.GetArgs()...);
 
-        result += cur.ver;
+        result += cur.GetVer();
     }
 
     return strconv.Itoa(result);
@@ -100,56 +100,46 @@ var extra_test_input = []string{
     `00111000000000000110111101000101001010010001001000000000`,
     `11101110000000001101010000001100100000100011000001100000`,
 };
-var extra_test_output = []Packet{
-    Packet{
-        ver:6,
-        op: 4,
+var extra_test_output = []IPacket{
+    &Literal{
+        Packet: Packet{ ver:6, args: []IPacket{} },
         n: 2021,
-        args: []Packet{},
     },
-    Packet{
-        ver:1,
-        op: 6,
-        n: -1,
-        args: []Packet{
-            Packet{
-                ver:6,
-                op: 4,
-                n: 10,
-                args: []Packet{},
-            },
-            Packet{
-                ver:2,
-                op: 4,
-                n: 20,
-                args: []Packet{},
+    &Operator{
+        Packet{
+            ver:1,
+            args: []IPacket{
+                &Literal{
+                    Packet{ ver:6, args: []IPacket{} },
+                    10,
+                },
+                &Literal{
+                    Packet{ ver:2, args: []IPacket{} },
+                    20,
+                },
             },
         },
+        &Lt{},
     },
-    Packet{
-        ver:7,
-        op: 3,
-        n: -1,
-        args: []Packet{
-            Packet{
-                ver:2,
-                op: 4,
-                n: 1,
-                args: []Packet{},
-            },
-            Packet{
-                ver:4,
-                op: 4,
-                n: 2,
-                args: []Packet{},
-            },
-            Packet{
-                ver:1,
-                op: 4,
-                n: 3,
-                args: []Packet{},
+    &Operator{
+        Packet{
+            ver:7,
+            args: []IPacket{
+                &Literal{
+                    Packet{ ver:2, args: []IPacket{} },
+                    1,
+                },
+                &Literal{
+                    Packet{ ver:4, args: []IPacket{} },
+                    2,
+                },
+                &Literal{
+                    Packet{ ver:1, args: []IPacket{} },
+                    3,
+                },
             },
         },
+        &Max{},
     },
 };
 func extra_test() {
@@ -159,25 +149,13 @@ func extra_test() {
         bit_arr, _ := utils.StrToInt_array(strings.Split(input, ""));
         packet, _ := parse_packet(bit_arr, 0);
         
-        candidates := []Packet{packet};
-        candidates2 := []Packet{output};
-        for len(candidates)>0 {
-            cur := candidates[len(candidates)-1];
-            clone := []Packet{};
-            clone = append(clone, candidates[:len(candidates)-1]...);
-            candidates = append(clone, cur.args...);
-
-            cur_out := candidates2[len(candidates2)-1];
-            clone_out := []Packet{};
-            clone_out = append(clone_out, candidates2[:len(candidates2)-1]...);
-            candidates2 = append(clone_out, cur_out.args...);
-
-            if cur.ver != cur_out.ver ||
-                cur.op != cur_out.op || 
-                cur.n != cur_out.n || 
-                len(cur.args) != len(cur_out.args) {
-                fmt.Println("ERROR!!! at test", i, input, packet, output);
-            }
+        if !DeepEquals(packet, output) {
+            fmt.Printf("ERROR!!! at test [%d]: '%s'\n%T == %T -> %t\n%v\n%v\n",
+                    i,
+                    input,
+                    packet, output, fmt.Sprintf("%T",packet) != fmt.Sprintf("%T",output),
+                    packet,
+                    output);
         }
     }
 }
@@ -209,13 +187,13 @@ func parse_hex(hex string) []int {
 }
 
 // len = 5
-func get_literal(packet []int, i int, len int) (int, int, int) {
-    prefix := packet[i];
+func get_literal(bit_arr []int, i int, len int) (int, int, int) {
+    prefix := bit_arr[i];
     i++;
     le := len-1; // we already retrieved prefix
     n := 0;
     for j:=i; j < i+le; j++ {
-        n = n << 1 + packet[j];
+        n = n << 1 + bit_arr[j];
     }
     i+=le;
 
@@ -223,7 +201,7 @@ func get_literal(packet []int, i int, len int) (int, int, int) {
     case 0:
         return n, i, 1;
     case 1:
-        n2, i, size := get_literal(packet, i, len);
+        n2, i, size := get_literal(bit_arr, i, len);
         shift := le * size;
         n = n << shift + n2;
         return n, i, size+1;
@@ -232,23 +210,195 @@ func get_literal(packet []int, i int, len int) (int, int, int) {
     }
     return -1, -1, -1; // this should error hopefully
 }
-func conv_Btoi(packet []int, i int, len int) (int, int) {
+func get_literal2(bit_arr []int, i int, len int) (int, int) {
+    n := 0;
+    for  {
+        prefix := bit_arr[i];
+        for j:=1; j < len; j++ { // start j=1 to avoid prefix
+            n = n << 1 + bit_arr[i+j];
+        }
+        i+= len;
+        
+        if prefix == 0 {
+            break;
+        }
+    }
+    return n, i;
+}
+func conv_Btoi(bit_arr []int, i int, len int) (int, int) {
     n := 0;
     for j:=0; j < len; j++ {
-        n = n << 1 + packet[i+j];
+        n = n << 1 + bit_arr[i+j];
     }
     return n, i+len;
 }
-func get_subpackets(packet []int, i int) ([]Packet, int) {
+
+type IPacket interface {
+    GetVer() int
+    SetVer(int)
+    GetArgs() []IPacket // consider whether this should be moved to IOperator
+    SetArgs([]IPacket)
+    GetValue() int
+}
+func DeepEquals(this IPacket, obj IPacket) bool { // can't make it a struct-method cause the struct is an interface ;(
+    same_type := fmt.Sprintf("%T",this) == fmt.Sprintf("%T",obj);
+    if !same_type {
+        fmt.Println("==",fmt.Sprintf("%v  -  %v",this,obj));
+        return false;
+    }
+    same_ver := this.GetVer() == obj.GetVer();
+    if !same_ver {
+        return false;
+    }
+
+    switch t := this.(type) {
+    case *Literal:
+        return this.(*Literal).n == obj.(*Literal).n;
+    case *Operator:
+        args, args2 := this.GetArgs(), obj.GetArgs();
+        same_len := len(args) == len(args2);
+        if !same_len {
+            return false;
+        }
+        all := true;
+        for i:=0; i < len(args); i++ {
+            all = all && DeepEquals(args[i], args2[i]);
+        }
+        return all;
+    default:
+        fmt.Printf("unexpected type %T", t)
+    }
+    return false;
+}
+
+type IOperator interface {
+    GetOperator() func(lhs, rhs int) int
+};
+
+type Packet struct {
+    ver int;
+    args []IPacket;
+}
+func (this *Packet) GetVer() int {
+    return this.ver
+}
+func (this *Packet) SetVer(v int) {
+    this.ver = v;
+}
+func (this *Packet) GetArgs() []IPacket {
+   return this.args;
+}
+func (this *Packet) SetArgs(args []IPacket) {
+    this.args = args;
+}
+
+// "embedding". Feels like wrapping/composition with some built-in type-checking and forwarding support for interfaces?
+// Essentially how you make structs extend other structs in golang
+type Operator struct {
+    Packet;
+    IOperator
+};
+func (this Operator) String() string {
+    return fmt.Sprintf("%T{v:%d, args:%v }", this.IOperator, this.ver, this.args);
+}
+func (this *Operator) GetValue() int {
+    f := this.IOperator.GetOperator();
+    // Can't foldl without an initial value, which should be the first arg's value, and then fold over tail
+    n := this.args[0].GetValue();
+    for _, arg := range this.args[1:] {
+        n = f(n, arg.GetValue());
+    }
+    return n;
+}
+
+type Literal struct {
+    Packet;
+
+    n int;
+};
+func (this Literal) String() string {
+    return fmt.Sprintf("%T{v:%d, n:%v}", this, this.ver, this.n);
+}
+func (this *Literal) GetValue() int {
+    return this.n;
+}
+
+// IOperator implementations
+type Sum struct {};
+type Product struct {};
+type Min struct {};
+type Max struct {};
+type Gt struct {};
+type Lt struct {};
+type Eq struct {};
+func (p *Sum) GetOperator() func(lhs, rhs int) int {
+    return func(lhs, rhs int) int { return lhs + rhs };
+}
+func (p *Product) GetOperator() func(lhs, rhs int) int {
+    return func(lhs, rhs int) int { return lhs * rhs };
+}
+func (p *Min) GetOperator() func(lhs, rhs int) int {
+    return func(lhs, rhs int) int { if lhs < rhs { return lhs } else { return rhs } };
+}
+func (p *Max) GetOperator() func(lhs, rhs int) int {
+    return func(lhs, rhs int) int { if lhs > rhs { return lhs } else { return rhs } };
+}
+func (p *Gt) GetOperator() func(lhs, rhs int) int {
+    return func(lhs, rhs int) int { if lhs > rhs { return 1 } else { return 0 } };
+}
+func (p *Lt) GetOperator() func(lhs, rhs int) int {
+    return func(lhs, rhs int) int { if lhs < rhs { return 1 } else { return 0 } };
+}
+func (p *Eq) GetOperator() func(lhs, rhs int) int {
+    return func(lhs, rhs int) int { if lhs == rhs { return 1 } else { return 0 } };
+}
+
+func parse_packet(bit_arr []int, i int) (IPacket, int) {
+    ver, i := conv_Btoi(bit_arr, i, 3);
+    op, i := conv_Btoi(bit_arr, i, 3);
+
+    packet := Packet{};
+    packet.SetVer(ver);
+
+    var operator IOperator;
+    switch op {
+    case 0: // sum
+        operator = &Sum{};
+    case 1: // product
+        operator = &Product{};
+    case 2: // min
+        operator = &Min{};
+    case 3: // max
+        operator = &Max{};
+    case 4: // literal
+        n, i := get_literal2(bit_arr, i, 5) // literal groups len=5
+        return &Literal{packet, n}, i;
+    case 5: // gt
+        operator = &Gt{};
+    case 6: // lt
+        operator = &Lt{};
+    case 7: // eq
+        operator = &Eq{};
+    default: // any operator
+        fmt.Println("impossible operator!", op);
+    }
+
+    subpackets, i := get_subpackets(bit_arr, i);
+    packet.SetArgs(subpackets);
+
+    return &Operator{packet, operator}, i;
+}
+
+func get_subpackets(packet []int, i int) ([]IPacket, int) {
     length_type_id := packet[i];
     i++;
-    subpackets := []Packet{};
+    subpackets := []IPacket{};
     switch length_type_id {
     case 0: // 'total length in bits' - a 15 bit int
         total_len, new_i := conv_Btoi(packet, i, 15);
         i = new_i;
         for i < new_i + total_len {
-            var subpacket Packet;
+            var subpacket IPacket;
             subpacket, i = parse_packet(packet, i);
             subpackets = append(subpackets, subpacket);
         }
@@ -256,7 +406,7 @@ func get_subpackets(packet []int, i int) ([]Packet, int) {
         num, new_i := conv_Btoi(packet, i, 11);
         i = new_i;
         for n:=0; n < num; n++ {
-            var subpacket Packet;
+            var subpacket IPacket;
             subpacket, i = parse_packet(packet, i);
             subpackets = append(subpackets, subpacket);
         }
@@ -266,36 +416,6 @@ func get_subpackets(packet []int, i int) ([]Packet, int) {
     return subpackets, i;
 }
 
-func parse_packet(packet []int, i int) (Packet, int) {
-    ver, i := conv_Btoi(packet, i, 3);
-    op, i := conv_Btoi(packet, i, 3);
-
-    p := Packet{ver: ver, op: op};
-    p.f = get_operation(p.op);
-    p.n = -1; // impossible value, lets us foldl with sensible init values (or in practice, return rhs for the first iteration) - check get_operator()
-    switch op {
-    case 4: // literal
-        n, new_i, _ := get_literal(packet, i, 5) // literal groups len=5
-        i = new_i;
-        p.n = n;
-    default: // any operator
-        subpackets, new_i := get_subpackets(packet, i);
-        i = new_i;
-        p.args = subpackets;
-    }
-    return p, i;
-}
-
-type Packet struct {
-    ver int;
-    op int;
-    n int;
-    args []Packet;
-    f func(lhs, rhs int) int;
-}
-func (p Packet) String() string {
-    return fmt.Sprintf("{ ver:%d op:%d n:%d args:%v }", p.ver, p.op, p.n, p.args);
-}
 
 var part2_test_input = []string{
     `C200B40A82`,
@@ -324,41 +444,7 @@ func part2(input string) string {
 
     packet, _ := parse_packet(bit_arr, 0);
 
-    packet = execute_packet(packet);
-
-    result := packet.n;
+    result := packet.GetValue();
 
     return strconv.Itoa(result);
-}
-
-func execute_packet(p Packet) Packet {
-    for _, p2 := range p.args {
-        p2 = execute_packet(p2);
-        p.n = p.f(p.n, p2.n);
-    }
-    return p
-}
-
-func get_operation(op int) func(lhs int, rhs int) int {
-    switch op {
-    case 0: // sum
-        return func(lhs, rhs int) int { if lhs < 0 {return rhs}; return lhs + rhs };
-    case 1: // product
-        return func(lhs, rhs int) int { if lhs < 0 {return rhs}; return lhs * rhs };
-    case 2: // min
-        return func(lhs, rhs int) int { if lhs < 0 {return rhs}; if lhs < rhs { return lhs } else { return rhs } };
-    case 3: // max
-        return func(lhs, rhs int) int { if lhs < 0 {return rhs}; if lhs > rhs{ return lhs } else { return rhs } };
-    case 4: // literal
-        return func(lhs, rhs int) int { return lhs };
-    case 5: // gt
-        return func(lhs, rhs int) int { if lhs < 0 {return rhs}; if lhs > rhs { return 1 } else { return 0 } };
-    case 6: // lt
-        return func(lhs, rhs int) int { if lhs < 0 {return rhs}; if lhs < rhs { return 1 } else { return 0 } };
-    case 7: // eq
-        return func(lhs, rhs int) int { if lhs < 0 {return rhs}; if lhs == rhs { return 1 } else { return 0 } };
-    default: // any operator
-        fmt.Println("impossible operator!", op);
-    }
-    return nil;
 }
