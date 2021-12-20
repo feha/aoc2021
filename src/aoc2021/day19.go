@@ -198,8 +198,8 @@ var part1_test_input = []string{
 30,-46,-14`,
 };
 var part1_test_output = []string{
-    ``,
-    // `79`,
+    // ``,
+    `79`,
 };
 func part1(input string) string {
     scanners := parse(input);
@@ -207,31 +207,40 @@ func part1(input string) string {
     generate_rotations();
     // From AoC: we are guaranteed it's an overlap if _12_ beacons match
     overlap := 12;
-
-    lhs := scanners[0];
-    candidates := append([]*Scanner{}, scanners[1:]...);
+    
+    lhs, candidates := scanners.Pop()
     for len(candidates) > 0 {
-        // pop safely
-        rhs := candidates[0];
-        candidates = append([]*Scanner{}, candidates[1:]...);
+        // // pop safely
+        // rhs := candidates[0];
+        // candidates = append([]*Scanner{}, candidates[1:]...);
+        rhs, tail := candidates.Pop()
+        candidates = tail;
 
-        overlap, unique := has_overlap(lhs, rhs, overlap);
+        overlap, new_beacons, _ := has_overlap(lhs, rhs, overlap);
         if overlap {
-            // fmt.Printf("%d overlaps: %d, %d\n", len(lhs.beacons), len(lhs.beacons)+len(unique));
-            for _, p := range unique {
-                any := false;
-                for _, p2 := range lhs.beacons {
-                    if p == p2 {
-                        any = true;
-                    }
-                }
-                if any {
-                    fmt.Println("BIG ERROR!");
-                }
-                // lhs.beacons = append(lhs.beacons, p);
-                // lhs.beacons[p] = true;
+            // for _, p := range new_beacons {
+            //     any := false;
+            //     for _, p2 := range lhs.beacons {
+            //         if p == p2 {
+            //             any = true;
+            //         }
+            //     }
+            //     if any {
+            //         fmt.Println("BIG ERROR!");
+            //     }
+            //     // lhs.beacons = append(lhs.beacons, p);
+            //     // lhs.beacons[p] = true;
+            // }
+            beacons := append(lhs.beacons, new_beacons...);
+            // add the new beacons relative positions to the existing beacons cache
+            for i, origo := range lhs.beacons {
+                lhs.locals_cache[i] = append(lhs.locals_cache[i], to_local(origo, new_beacons)...);
             }
-            lhs.beacons = append(lhs.beacons, unique...);
+            // ... and generate the cache for the new beacons themselves
+            for _, origo := range new_beacons {
+                lhs.locals_cache = append(lhs.locals_cache, append([]Coord{}, to_local(origo, beacons)...));
+            }
+            lhs.beacons = beacons; // add the new beacons
         } else {
             candidates = append(candidates, rhs);
         }
@@ -289,6 +298,10 @@ func part1(input string) string {
 //     return strconv.Itoa(result);
 // }
 
+type Poper interface {
+    Pop([]Poper) (Poper, []Poper)
+}
+
 type Coord struct {
     x, y, z int
 }
@@ -298,23 +311,32 @@ func (this Coord) Add(rhs Coord) Coord {
 func (this Coord) Sub(rhs Coord) Coord {
     return Coord{this.x - rhs.x, this.y - rhs.y, this.z - rhs.z};
 }
+type Coords []Coord;
+func (this Coords) Pop() (Coord, Coords) {
+    return this[0], append([]Coord{}, this[1:]...);
+}
 
 type Scanner struct {
-    beacons []Coord
+    beacons, scanners []Coord
     // beacons map[Coord]Beacon
     // beacons map[Coord]bool
     // orientations *[]map[Coord]bool
     orientations [][]Coord
+    locals_cache [][]Coord
+}
+type Scanners []*Scanner;
+func (this Scanners) Pop() (*Scanner, Scanners) {
+    return this[0], append(Scanners{}, this[1:]...);
 }
 // type Beacon struct {
 //     pos Coord
 // }
 
-func parse(input string) []*Scanner {
+func parse(input string) Scanners {
     inputs := utils.Trim_array(strings.Split(strings.Trim(input, separator), separator));
 
     re := regexp.MustCompile("(-?\\d+),(-?\\d+),(-?\\d+)");
-    scanners := []*Scanner{};
+    scanners := Scanners{};
     for _, input := range inputs {
         lines := strings.Split(input, "\n");
         scanner := Scanner{};
@@ -325,9 +347,14 @@ func parse(input string) []*Scanner {
             z, _ := strconv.Atoi(match[3]);
             p := Coord{x, y, z};
             scanner.beacons = append(scanner.beacons, p);
-            // scanner.beacons[p] = true;
         }
         scanners = append(scanners, &scanner);
+    }
+
+    // prepare cache for Scanner 0
+    fst := scanners[0];
+    for _, p := range fst.beacons {
+        fst.locals_cache = append(fst.locals_cache, to_local(p, fst.beacons));
     }
 
     return scanners;
@@ -358,52 +385,78 @@ func generate_rotations() {
     fmt.Println("generate_rotations - ", len(rots), rots);
 }
 
-func create_orientations(beacons []Coord) [][]Coord {
-    orientations := [][]Coord{};
-// func create_orientations(beacons map[Coord]bool) []map[Coord]bool {
-//     orientations := []map[Coord]bool{beacons};
-
-    // all rotations
-    for _, rot := range rots {
-        orientation := []Coord{};
-        for _, p := range beacons {
-        // orientation := map[Coord]bool{};
-        // for p, _ := range beacons {
-            orientation = append(orientation, rotate(p, rot));
-            // orientation[rotate(p, rot)] = true;
-        }
-        orientations = append(orientations, orientation)
-    }
-    return orientations;
-    // // filter duplicates (4*4*4 != 24)
-    // ret := [][]Coord{};
-    // // ret := []map[Coord]bool{};
-    // for i:=0; i<len(orientations)-1; i++ {
-    //     any_duplicate := false;
-    //     for j:=i+1; j<len(orientations); j++ {
-    //         diff := symmetric_diff(orientations[i], orientations[j])
-    //         if len(diff) == 0 {
-    //             fmt.Println("identical orientations!! i=",i," j=",j);
-    //             any_duplicate = true;
-    //             break;
-    //         }
-    //         // all := len(orientations[i]) == len(orientations[j]);
-    //         // if all {
-    //         //     for k, p := range orientations[i] {
-    //         //         all = all && p == orientations[j][k];
-    //         //     }
-    //         //     if all {
-    //         //         fmt.Println("identical orientations!! i=",i," j=",j);
-    //         //         any_duplicate = true;
-    //         //     }
-    //         // }
-    //     }
-    //     if !any_duplicate {
-    //         ret = append(ret, orientations[i]);
-    //     }
-    // }
-    // return ret;
+func create_orientations_iterator(beacons []Coord) Orientation_Iterator {
+    return Orientation_Iterator{rots, beacons};
 }
+
+type Orientation_Iterator struct {
+    rots Coords
+    beacons []Coord
+}
+func (this *Orientation_Iterator) HasNext() bool {
+    return len(this.rots) != 0
+}
+func (this *Orientation_Iterator) Next() []Coord {
+    if len(this.rots) == 0 {
+        return []Coord{};
+    }
+
+    rot, tail := this.rots.Pop();
+    this.rots = tail;
+    
+    orientation := []Coord{};
+    for _, p := range this.beacons {
+        orientation = append(orientation, rotate(p, rot));
+    }
+    return orientation;
+}
+
+// func create_orientations(beacons []Coord) [][]Coord {
+//     orientations := [][]Coord{};
+// // func create_orientations(beacons map[Coord]bool) []map[Coord]bool {
+// //     orientations := []map[Coord]bool{beacons};
+
+//     // all rotations
+//     for _, rot := range rots {
+//         orientation := []Coord{};
+//         for _, p := range beacons {
+//         // orientation := map[Coord]bool{};
+//         // for p, _ := range beacons {
+//             orientation = append(orientation, rotate(p, rot));
+//             // orientation[rotate(p, rot)] = true;
+//         }
+//         orientations = append(orientations, orientation)
+//     }
+//     return orientations;
+//     // // filter duplicates (4*4*4 != 24)
+//     // ret := [][]Coord{};
+//     // // ret := []map[Coord]bool{};
+//     // for i:=0; i<len(orientations)-1; i++ {
+//     //     any_duplicate := false;
+//     //     for j:=i+1; j<len(orientations); j++ {
+//     //         diff := symmetric_diff(orientations[i], orientations[j])
+//     //         if len(diff) == 0 {
+//     //             fmt.Println("identical orientations!! i=",i," j=",j);
+//     //             any_duplicate = true;
+//     //             break;
+//     //         }
+//     //         // all := len(orientations[i]) == len(orientations[j]);
+//     //         // if all {
+//     //         //     for k, p := range orientations[i] {
+//     //         //         all = all && p == orientations[j][k];
+//     //         //     }
+//     //         //     if all {
+//     //         //         fmt.Println("identical orientations!! i=",i," j=",j);
+//     //         //         any_duplicate = true;
+//     //         //     }
+//     //         // }
+//     //     }
+//     //     if !any_duplicate {
+//     //         ret = append(ret, orientations[i]);
+//     //     }
+//     // }
+//     // return ret;
+// }
 func rotate(p Coord, axis Coord) Coord { // axis = {0-3,0-3,0-3}
     if (axis.x == 0 && axis.y == 0 && axis.z == 0) ||
             (axis.x == 2 && axis.y == 2 && axis.z == 2) {
@@ -461,19 +514,27 @@ func diff(lhs []Coord, rhs []Coord) []Coord {
 
 // From AoC: scanners coordinate system has a random 90-degree rotation around any of the 3 axes (x, y, z)
 func has_overlap(lhs, rhs *Scanner, overlap int) (bool, []Coord, Coord) {
-    lhs_orientation := lhs.beacons; // we already rotate rhs, no need to rotate lhs too
-    if len(rhs.orientations) == 0 {
-        rhs.orientations = create_orientations(rhs.beacons);
-    }
-    rhs_orientations := rhs.orientations;
-    
-    for _, rhs_orientation := range rhs_orientations {
-        overlap, unique, rhs_in_lhs := has_overlap_helper(lhs_orientation, rhs_orientation, overlap)
+    itr := create_orientations_iterator(rhs.beacons);
+    for itr.HasNext() {
+        rhs_orientation := itr.Next();
+        // we already rotate rhs, no need to rotate lhs too
+        overlap, new_beacons, rhs_in_lhs := has_overlap_helper(lhs, rhs, lhs.beacons, rhs_orientation, overlap)
         if overlap {
-            return true, unique, rhs_in_lhs;
+            return true, new_beacons, rhs_in_lhs;
         }
     }
     return false, []Coord{}, Coord{};
+    // if len(rhs.orientations) == 0 {
+    //     rhs.orientations = create_orientations(rhs.beacons);
+    // }
+    // rhs_orientations := rhs.orientations;
+    // for _, rhs_orientation := range rhs_orientations {
+    //     overlap, unique, rhs_in_lhs := has_overlap_helper(lhs_orientation, rhs_orientation, overlap)
+    //     if overlap {
+    //         return true, unique, rhs_in_lhs;
+    //     }
+    // }
+    // return false, []Coord{}, Coord{};
 }
 // func has_overlap_helper(lhs, rhs []Coord, overlap int) (bool, []Coord) {
 // // func has_overlap_helper(lhs, rhs map[Coord]bool) (int, []Coord) {
@@ -530,30 +591,30 @@ func has_overlap(lhs, rhs *Scanner, overlap int) (bool, []Coord, Coord) {
 //     }
 //     return false, []Coord{};
 // }
-func has_overlap_helper(lhs, rhs []Coord, overlap int) (bool, []Coord, Coord) {
-    for _, lhs_p := range lhs {
-        lhs_local := to_local(lhs_p, lhs);
-        for _, rhs_p := range rhs {
-            rhs_local := to_local(rhs_p, rhs); // local_ps = rhs.ps - rhs.origo
-            count := 0;
-            group := []Coord{};
+func has_overlap_helper(lsc, rsc *Scanner, lhs, rhs []Coord, overlap int) (bool, []Coord, Coord) {
+    for i, lhs_origo := range lhs {
+        lhs_local := lsc.locals_cache[i];
+        for _, rhs_origo := range rhs {
+            rhs_local := to_local(rhs_origo, rhs); // local_ps = rhs.ps - rhs.origo
+            intersection_local := []Coord{};
             for _, p := range lhs_local {
                 for _, p2 := range rhs_local {
                     if p == p2 {
-                        count++;
-                        group = append(group, p);
+                        intersection_local = append(intersection_local, p);
+                        break; // no need to check further
                     }
                 }
             }
-            complement := diff(rhs_local, group); // only want to add those missing
-            unique := []Coord{};
-            for _, p := range complement {
-                unique = append(unique, lhs_p.Add(p)); // lhs.ps = local_ps + lhs.origo
-            }
-            if count >= overlap {
-                sc_local_to_origo := Coord{0,0,0}.Sub(rhs_p);
-                sc_in_lhs := lhs_p.Add(sc_local_to_origo)
-                return true, unique, sc_in_lhs;
+            if len(intersection_local) >= overlap { // 'lhs_origo == rhs_origo' is considered true
+                diff_local := diff(rhs_local, intersection_local); // only want to add those missing
+                new_beacons := []Coord{};
+                for _, p := range diff_local {
+                    new_beacons = append(new_beacons, lhs_origo.Add(p)); // lhs.ps = local_ps + lhs.origo
+                }
+
+                sc_local_to_origo := Coord{0,0,0}.Sub(rhs_origo);
+                sc_in_lhs := lhs_origo.Add(sc_local_to_origo)
+                return true, new_beacons, sc_in_lhs;
             }
         }
     }
@@ -561,10 +622,7 @@ func has_overlap_helper(lhs, rhs []Coord, overlap int) (bool, []Coord, Coord) {
 }
 func to_local(p Coord, rhs []Coord) []Coord {
     local := []Coord{};
-// func to_local(p Coord, rhs map[Coord]bool) map[Coord]bool {
-//     local := map[Coord]bool{};
     for _, rhs_p := range rhs {
-    // for rhs_p, _ := range rhs {
         local = append(local, rhs_p.Sub(p));
     }
     return local;
@@ -718,30 +776,34 @@ func part2(input string) string {
     // From AoC: we are guaranteed it's an overlap if _12_ beacons match
     overlap := 12;
     
-    lhs := scanners[0];
-    candidates := append([]*Scanner{}, scanners[1:]...);
-    scs := []Coord{Coord{}};
+    lhs, candidates := scanners.Pop();
+    lhs.scanners = []Coord{Coord{}};
     for len(candidates) > 0 {
-        // pop safely
-        rhs := candidates[0];
-        candidates = append([]*Scanner{}, candidates[1:]...);
+        rhs, tail := candidates.Pop();
+        candidates = tail
 
-        overlap, unique, sc_in_lhs := has_overlap(lhs, rhs, overlap);
+        overlap, new_beacons, sc_in_lhs := has_overlap(lhs, rhs, overlap);
         if overlap {
-            scs = append(scs, sc_in_lhs);
-            lhs.beacons = append(lhs.beacons, unique...);
+            lhs.scanners = append(lhs.scanners, sc_in_lhs);
+            beacons := append(lhs.beacons, new_beacons...);
+            // add the new beacons relative positions to the existing beacons cache
+            for i, origo := range lhs.beacons {
+                lhs.locals_cache[i] = append(lhs.locals_cache[i], to_local(origo, new_beacons)...);
+            }
+            // ... and generate the cache for the new beacons themselves
+            for _, origo := range new_beacons {
+                lhs.locals_cache = append(lhs.locals_cache, append([]Coord{}, to_local(origo, beacons)...));
+            }
+            lhs.beacons = beacons; // add the new beacons
         } else {
             candidates = append(candidates, rhs);
         }
-        fmt.Println(len(candidates));
     }
 
     result := 0;
-    for i:=0; i < len(scs)-1; i++ {
-        for j:=i+1; j < len(scs); j++ {
-            lhs := scs[i];
-            rhs := scs[j];
-            dist := lhs.Sub(rhs).Sum();
+    for i:=0; i < len(lhs.scanners)-1; i++ {
+        for j:=i+1; j < len(lhs.scanners); j++ {
+            dist := lhs.scanners[i].Sub(lhs.scanners[j]).Sum();
             if result < dist {
                 result = dist;
             }
