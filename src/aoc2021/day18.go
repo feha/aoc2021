@@ -233,7 +233,7 @@ var part1_test_input = []string{
 // [[1,9],[8,5]]
 // [[[[1,2],[3,4]],[[5,6],[7,8]]],9]
 // [[[9,[3,8]],[[0,9],6]],[[[3,7],[4,9]],3]]
-// [[[[1,3],[5,3]],[[1,3],[8,7]]],[[[4,9],[6,9]],[[8,2],[7,3]]]]`,
+// [[[[1,3],[5,3]],[[1,3],[8,7]]],[[[4,9],[6,9]],[[8,2],[7,3]]]]`, // first example they give... but where do they give the answer?
     `[9,1]`,
     `[1,9]`,
     `[[9,1],[1,9]]`,
@@ -256,7 +256,7 @@ var part1_test_input = []string{
     `[[[[6,6],[7,6]],[[7,7],[7,0]]],[[[7,7],[7,7]],[[7,8],[9,9]]]]`,
 };
 var part1_test_output = []string{
-    // ``,
+    // ``, // first example they give... but where do they give the answer?
     `29`,
     `21`,
     `129`,
@@ -278,7 +278,7 @@ func part1(input string) string {
 }
 
 type SingleFisher interface {
-    String() string
+    fmt.Stringer
     GetValue() int
     GetLeaves() []SingleFisher
     Add(SingleFisher) SingleFisher
@@ -386,63 +386,11 @@ func subparser(arr []string) SingleFisher {
         n, _ := strconv.Atoi(str);
         return Single(n);
     }
-    // if len(arr) == 1 {
-    //     n, _ := strconv.Atoi(arr[0]);
-    //     fmt.Println(arr[0], n, re)
-    //     return Single(n);
-    // }
 
     _, fst, snd := find_comma(arr);
     return Pair{fst: subparser(fst), snd: subparser(snd)};
-    
-
-    // re := regexp.MustCompile("(\\[*(\\[\\d),(\\d)\\],?)+\\]*)+");
-
-
-    // arr := strings.Split(str, "");
-    // c := arr[0];
-    // str = arr[1:];
-
-    // switch c {
-    // case "[":
-    //     fst, _ := strconv.Atoi(arr[1]);
-    //     // comma := arr[2];
-    //     snd, _ := strconv.Atoi(arr[3]);
-    //     pair := Pair{};
-    // case "]":
-
-    // default:
-    //     n, _ := strconv.Atoi(c);
-    //     return Single(n);
-    // }
-
-
-    // var ret SingleFisher;
-    // for _, c := range strings.Split(str, "") {
-    //     switch c {
-    //     case "[":
-    //         if ret == nil {
-    //             ret = Pair{};
-    //         } else {
-                
-    //         }
-    //     case "]":
-
-    //     default:
-    //         n, _ := strconv.Atoi(c);
-    //         ret = Single(n);
-    //         if ret == nil {
-    //             return ret;
-    //         }
-    //     }
-    // }
 }
 
-// // [[[0,[4,5]],[0,0]],[[[4,5],[2,6]],[9,5]]]  +  [7,[[[3,7],[4,3]],[[6,3],[8,8]]]] = [[4,[7,[6,0]]],[[8,9],[[7,7],[0,6]]]]
-// [ [ [ [0, [4,5]], [0,0] ], [ [ [4,5], [2,6] ], [9,5] ] ] , [7,[[[3,7],[4,3]],[[6,3],[8,8]]]]]     // [lhs , rhs]
-// [ [ [ [4,0]     , [5,0] ], [ [ [4,5], [2,6] ], [9,5] ] ] , [7,[[[3,7],[4,3]],[[6,3],[8,8]]]]] // explode - correct
-// [ [    4                 , [ [ 0    , [7,6] ], [9,5] ] ] , [7,[[[3,7],[4,3]],[[6,3],[8,8]]]]] // explode - incorrect
-// [ [ [ [4,0]     , [5,4] ], [ [ 0    , [7,6] ], [9,5] ] ] , [7,[[[3,7],[4,3]],[[6,3],[8,8]]]]] // expected
 func explode(n SingleFisher) SingleFisher {
     n, _, _ = explode_helper(n,0);
     return n;
